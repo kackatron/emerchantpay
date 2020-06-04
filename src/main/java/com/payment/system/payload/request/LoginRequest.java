@@ -3,7 +3,7 @@ package com.payment.system.payload.request;
 import javax.validation.constraints.NotBlank;
 
 /**
- * LoginRequest is POJO that represents login credentials
+ * LoginRequest is POJO that represents request for login aka credentials information
  */
 public class LoginRequest {
     @NotBlank

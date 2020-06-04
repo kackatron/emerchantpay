@@ -7,10 +7,16 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import com.payment.system.dao.models.ERole;
+import com.payment.system.dao.models.EUserStatus;
+import com.payment.system.dao.models.Role;
+import com.payment.system.dao.models.User;
 import com.payment.system.dao.repositories.RoleRepository;
 import com.payment.system.dao.repositories.UserRepository;
 import com.payment.system.payload.request.LoginRequest;
+import com.payment.system.payload.request.RegisterUserRequest;
 import com.payment.system.payload.response.LoginResponse;
+import com.payment.system.payload.response.SimpleResponse;
 import com.payment.system.security.JwtHandler;
 import com.payment.system.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,5 +75,58 @@ public class AuthController {
                 userDetails.getStatus(),
                 userDetails.getTotalTransactionSum(),
                 roles));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserRequest signUpRequest) {
+        if (userRepository.existsByName(signUpRequest.getUsername())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new SimpleResponse("Error: Username is already taken!"));
+        }
+
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new SimpleResponse("Error: Email is already in use!"));
+        }
+
+        // Create new user's account
+        User user = new User(signUpRequest.getUsername(),
+                signUpRequest.getEmail(),
+                encoder.encode(signUpRequest.getPassword()));
+
+        Set<String> strRoles = signUpRequest.getRole();
+        Set<Role> roles = new HashSet<>();
+
+        if (strRoles == null) {
+            Role userRole = roleRepository.findByName(ERole.MERCHANT)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        } else {
+            strRoles.forEach(role -> {
+                switch (role) {
+                    case "administrator":
+                        Role adminRole = roleRepository.findByName(ERole.ADMINISTRATOR)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(adminRole);
+
+                        break;
+                    case "merchant":
+                        Role modRole = roleRepository.findByName(ERole.MERCHANT)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(modRole);
+
+                        break;
+                }
+            });
+        }
+
+        user.setRoles(roles);
+        //Always create users active they can be deactivated later
+        user.setStatus(EUserStatus.ACTIVE);
+        user.setDescription(signUpRequest.getDescription());
+        userRepository.save(user);
+        return ResponseEntity.ok(new SimpleResponse("User registered successfully!"));
     }
 }
