@@ -30,11 +30,11 @@ public class UserDetailsImpl implements UserDetails {
 
     private final String description;
 
-    private final Long totalTransactionSum;
+    private final double totalTransactionSum;
 
     private final Collection<? extends GrantedAuthority> authorities;
 
-    private UserDetailsImpl(Long id, String name, String password, String email, String description, String status, Long totalTransactionSum,
+    private UserDetailsImpl(Long id, String name, String password, String email, String description, String status, double totalTransactionSum,
                             Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.name = name;
@@ -89,7 +89,7 @@ public class UserDetailsImpl implements UserDetails {
         return status;
     }
 
-    public Long getTotalTransactionSum() {
+    public double getTotalTransactionSum() {
         return totalTransactionSum;
     }
 

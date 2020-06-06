@@ -15,7 +15,7 @@ import javax.validation.constraints.Size;
 public class AuthorizeTransaction extends Transaction {
     @NotBlank
     @Min(1)
-    private Long amount;
+    private double amount;
 
     @Size(max = 50)
     @Email
@@ -24,13 +24,14 @@ public class AuthorizeTransaction extends Transaction {
     @Size(max = 20)
     private String customer_phone;
 
+
     public AuthorizeTransaction(){
     }
 
     public AuthorizeTransaction(@NotBlank @Min(1) long uuid,
                                 @Size(max = 50) @Email String customer_email,
                                 @Size(max = 20) String customer_phone,
-                                @NotBlank @Min(1) long amount
+                                @NotBlank @Min(1) double amount
     ) {
         this.uuid = uuid;
         this.customer_email = customer_email;
@@ -38,11 +39,11 @@ public class AuthorizeTransaction extends Transaction {
         this.amount = amount;
     }
 
-    public Long getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(Long amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 

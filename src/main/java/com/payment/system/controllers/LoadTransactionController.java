@@ -1,6 +1,7 @@
 package com.payment.system.controllers;
 
 import com.payment.system.dao.models.trx.Transaction;
+import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.security.UserDetailsImpl;
 import com.payment.system.services.trx.TransactionProcessingException;
@@ -20,6 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/payment")
 public class LoadTransactionController {
+    //Exposed for test purposes
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String CHARGE = "Charge";
+    public static final String REFUND = "Refund";
+    public static final String REVERSAL = "Reversal";
+
     private static final Logger logger = LoggerFactory.getLogger(LoadTransactionController.class);
 
     @Autowired
@@ -31,11 +38,11 @@ public class LoadTransactionController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication;
         logger.info("Received {} from merchant {}", registerTransaction, userDetails);
         Transaction transaction = null;
-        switch (registerTransaction.getRefTrx()) {
-            case "Authorization": {
+        switch (registerTransaction.getTypeOfTrx()) {
+            case AUTHORIZATION: {
                 logger.info("Transaction is of type Authorization");
                 try {
-                    transaction = transactionRegistrationService.registerAuthorizationTransaction(registerTransaction);
+                    transaction = transactionRegistrationService.registerAuthorizationTransaction(userDetails,registerTransaction);
                     logger.info("Successful registering of transaction {}", transaction);
                     return ResponseEntity.status(HttpStatus.ACCEPTED).body(transaction);
                 } catch (TransactionProcessingException e) {
@@ -43,7 +50,7 @@ public class LoadTransactionController {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
                 }
             }
-            case "Charge": {
+            case CHARGE: {
                 logger.info("Transaction is of type Charge");
                 try {
                     transaction = transactionRegistrationService.registerChargeTransaction(registerTransaction);
@@ -53,7 +60,7 @@ public class LoadTransactionController {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
                 }
             }
-            case "Refund": {
+            case REFUND: {
                 logger.info("Transaction is of type Refund");
                 try {
                     transaction = transactionRegistrationService.registerRefundTransaction(registerTransaction);
@@ -63,7 +70,7 @@ public class LoadTransactionController {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
                 }
             }
-            case "Reversal":
+            case REVERSAL:
             default: {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new TransactionProcessingException("There is no transaction with type " + registerTransaction.getRefTrx()));

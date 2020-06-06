@@ -1,7 +1,19 @@
 package com.payment.system.payload.request;
 
+import javax.validation.constraints.Email;
+
 public class CustomerInfo {
+    @Email
     String customer_email;
+
+    public CustomerInfo() {
+    }
+
+    public CustomerInfo(@Email String customer_email, String customer_phone) {
+        this.customer_email = customer_email;
+        this.customer_phone = customer_phone;
+    }
+
     String customer_phone;
 
     public String getCustomer_email() {

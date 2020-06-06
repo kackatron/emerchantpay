@@ -13,10 +13,10 @@ public class LoginResponse {
     private String description;
     private String email;
     private String status;
-    private Long totalTransactionSum;
+    private double totalTransactionSum;
     private List<String> roles;
 
-    public LoginResponse(String token, Long id, String username, String email, String description, String status, Long totalTransactionSum, List<String> roles) {
+    public LoginResponse(String token, Long id, String username, String email, String description, String status, double totalTransactionSum, List<String> roles) {
         this.token = token;
         this.id = id;
         this.username = username;
@@ -75,7 +75,7 @@ public class LoginResponse {
         this.description = description;
     }
 
-    public Long getTotalTransactionSum() {
+    public double getTotalTransactionSum() {
         return totalTransactionSum;
     }
 

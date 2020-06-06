@@ -15,6 +15,16 @@ public class RegisterTransaction {
     @NotBlank
     private String typeOfTrx;
 
+    public RegisterTransaction(){}
+
+    public RegisterTransaction(@NotBlank String uuid, @NotBlank String amount, String refTrx, @NotBlank String typeOfTrx, CustomerInfo customerInfo) {
+        this.uuid = uuid;
+        this.amount = amount;
+        this.refTrx = refTrx;
+        this.typeOfTrx = typeOfTrx;
+        this.customerInfo = customerInfo;
+    }
+
     private CustomerInfo customerInfo;
 
     public String getUuid() {

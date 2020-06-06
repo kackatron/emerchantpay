@@ -1,7 +1,7 @@
 package com.payment.system.security;
 
 import com.payment.system.dao.models.User;
-import com.payment.system.dao.repositories.UserRepository;
+import com.payment.system.dao.repositories.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

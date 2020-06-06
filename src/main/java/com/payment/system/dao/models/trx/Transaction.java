@@ -10,10 +10,10 @@ import java.util.Date;
 
 /**
  * Transaction is a JPA entity representing a single table that houses all classes that extend Transaction class:
- *  - AuthorizeTransaction
- *  - ChargeTransaction
- *  - RefundTransaction
- *  - ReversalTransaction
+ * - AuthorizeTransaction
+ * - ChargeTransaction
+ * - RefundTransaction
+ * - ReversalTransaction
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -35,12 +35,21 @@ public class Transaction {
     @Column(length = 8)
     protected ETrxStatus status;
 
+
     @ManyToOne
-    @JoinColumn(name="id")
+    @JoinColumn(name = "id")
     protected User merchant;
 
-    public Transaction(){
-        status=ETrxStatus.APPROVED;
+    @OneToOne
+    @JoinColumn
+    protected Transaction reference_id;
+
+    // ETrxProcessed marks if the TransactionProcessingService gone through this transaction. If it is processed its vailable for
+    protected ETrxProcessed processed;
+
+    public Transaction() {
+        status = ETrxStatus.APPROVED;
+        processed = ETrxProcessed.PENDING;
         dateTimeCreation = new Date();
     }
 
@@ -68,8 +77,27 @@ public class Transaction {
         this.status = status;
     }
 
-    public User getMerchant() { return merchant; }
+    public User getMerchant() {
+        return merchant;
+    }
 
-    public void setMerchant(User merchant) { this.merchant = merchant; }
+    public void setMerchant(User merchant) {
+        this.merchant = merchant;
+    }
+
+    public ETrxProcessed getProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(ETrxProcessed processed) {
+        this.processed = processed;
+    }
+    public Transaction getReference_id() {
+        return reference_id;
+    }
+
+    public void setReference_id(Transaction reference_id) {
+        this.reference_id = reference_id;
+    }
 
 }

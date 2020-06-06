@@ -1,10 +1,12 @@
 package com.payment.system.services.trx;
 
-import com.payment.system.controllers.LoadTransactionController;
+import com.payment.system.dao.models.User;
 import com.payment.system.dao.models.trx.*;
-import com.payment.system.dao.repositories.TransactionRepository;
+import com.payment.system.dao.repositories.trx.TransactionRepository;
+import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.RegisterTransaction;
+import com.payment.system.security.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,11 @@ public class TransactionRegistrationService {
     @Autowired
     TransactionRepository transactionRepository;
 
-    public AuthorizeTransaction registerAuthorizationTransaction(RegisterTransaction request) throws TransactionProcessingException {
+    @Autowired
+    UserRepository userRepository;
+
+    public AuthorizeTransaction registerAuthorizationTransaction(UserDetailsImpl userDetails, RegisterTransaction request) throws TransactionProcessingException {
+        User merchant = getMerchant(userDetails);
         // Handle uuid
         String sUuid = request.getUuid();
         long uuid;
@@ -37,20 +43,23 @@ public class TransactionRegistrationService {
         }
         // Handle amount of transaction
         String sAmount = request.getAmount();
-        Long amount;
+        double amount;
         try {
-            amount = Long.parseLong(sAmount);
+            amount = Double.parseDouble(sAmount);
         } catch (NumberFormatException e) {
             throw new TransactionProcessingException("Invalid format for transaction amount", e);
         }
         if (amount <= 0) {
             throw new TransactionProcessingException("Invalid amount. Can`t be a negative number or zero");
         }
+        AuthorizeTransaction authorizeTransaction = new AuthorizeTransaction(uuid, customerInfo.getCustomer_email(), customerInfo.getCustomer_phone(), amount);
+        //Set merchant
+        authorizeTransaction.setMerchant(merchant);
         // Store transaction
-        return transactionRepository.save(new AuthorizeTransaction(uuid, customerInfo.getCustomer_email(), customerInfo.getCustomer_phone(), amount));
+        return transactionRepository.save(authorizeTransaction);
     }
 
-    public ReversalTransaction registerReversalTransaction(RegisterTransaction request) throws TransactionProcessingException {
+    public ReversalTransaction registerReversalTransaction(UserDetailsImpl userDetails, RegisterTransaction request) throws TransactionProcessingException {
         //Handle uuid
         String sUuid = request.getUuid();
         long uuid;
@@ -83,9 +92,8 @@ public class TransactionRegistrationService {
             throw new TransactionProcessingException("Referenced transaction is not Authorize transaction.");
         }
         // Store transaction
-        authorizeTransaction.setStatus(ETrxStatus.REVERSED);
         transactionRepository.save(authorizeTransaction);
-        return transactionRepository.save(new ReversalTransaction(uuid,authorizeTransaction));
+        return transactionRepository.save(new ReversalTransaction(uuid, authorizeTransaction));
     }
 
     public ChargeTransaction registerChargeTransaction(RegisterTransaction request) throws TransactionProcessingException {
@@ -120,19 +128,24 @@ public class TransactionRegistrationService {
         } catch (ClassCastException e) {
             throw new TransactionProcessingException("Referenced transaction is not Authorize transaction.");
         }
+        //Extract merchat from authorize transaction
+        User merchant = authorizeTransaction.getMerchant();
         // Handle reference transaction, we expect it to be ChargeTransaction
         String sAmount = request.getAmount();
-        long amount;
+        double amount;
         try {
-            amount = Long.parseLong(sAmount);
+            amount = Double.parseDouble(sAmount);
         } catch (NumberFormatException e) {
             throw new TransactionProcessingException("Invalid format for transaction amount", e);
         }
         if (amount <= 0) {
             throw new TransactionProcessingException("Invalid amount. Can`t be a negative number or zero");
         }
+
+        ChargeTransaction chargeTransaction = new ChargeTransaction(uuid, authorizeTransaction, amount);
+        chargeTransaction.setMerchant(merchant);
         // Store transaction
-        return transactionRepository.save(new ChargeTransaction(uuid, authorizeTransaction, amount));
+        return transactionRepository.save(chargeTransaction);
     }
 
     public RefundTransaction registerRefundTransaction(RegisterTransaction request) throws TransactionProcessingException {
@@ -167,11 +180,13 @@ public class TransactionRegistrationService {
         } catch (ClassCastException e) {
             throw new TransactionProcessingException("Referenced transaction is not Charge transaction.");
         }
+        // Extract merchant from charge transaction;
+        User merchant = chargeTransaction.getMerchant();
         // Handle amount
         String sAmount = request.getAmount();
-        long amount;
+        double amount;
         try {
-            amount = Long.parseLong(sAmount);
+            amount = Double.parseDouble(sAmount);
         } catch (NumberFormatException e) {
             throw new TransactionProcessingException("Invalid format for transaction amount", e);
         }
@@ -180,13 +195,17 @@ public class TransactionRegistrationService {
         }
         if (amount != chargeTransaction.getAmount()) {
             logger.warn("Amount of the referenced Charge Transaction : {} is different from amount in the Refund Transaction :{}",
-                    chargeTransaction.getAmount(), amount );
+                    chargeTransaction.getAmount(), amount);
         }
-        // Change the status of charge transaction to refunded
-        chargeTransaction.setStatus(ETrxStatus.REFUNDED);
-        transactionRepository.save(chargeTransaction);
-
+        RefundTransaction refundTransaction = new RefundTransaction(uuid, chargeTransaction, amount);
+        refundTransaction.setMerchant(merchant);
         // Store the refund transaction
-        return transactionRepository.save(new RefundTransaction(uuid,chargeTransaction,amount));
+        return transactionRepository.save(new RefundTransaction(uuid, chargeTransaction, amount));
+    }
+
+    private User getMerchant(UserDetailsImpl userDetails) throws TransactionProcessingException {
+        return userRepository.findByName(userDetails.getUsername()).orElseThrow(
+                () -> new TransactionProcessingException("Can not find merchant with that name.")
+        );
     }
 }

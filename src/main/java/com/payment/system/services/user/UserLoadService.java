@@ -1,24 +1,24 @@
-package com.payment.system.controllers;
+package com.payment.system.services.user;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.payment.system.dao.models.Role;
 import com.payment.system.dao.models.User;
-import com.payment.system.dao.repositories.RoleRepository;
-import com.payment.system.dao.repositories.UserRepository;
+import com.payment.system.dao.repositories.user.RoleRepository;
+import com.payment.system.dao.repositories.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,9 +41,21 @@ public class UserLoadService {
     @Autowired
     PasswordEncoder passEncoder;
 
+    private static String csvFile = "classpath:Users.csv";
+
+    public String getCsvFile() {
+        return csvFile;
+    }
+
+    public void setCsvFile(String csvFile) {
+        UserLoadService.csvFile = csvFile;
+    }
+
     @PostConstruct
-    private void loadUsers(){
-        Resource resource = resourceLoader.getResource("classpath:Users.csv");
+    public List<User> loadUsers(){
+        Resource resource;
+        resource = resourceLoader.getResource(csvFile);
+        List<User> result=new ArrayList<>();
         try {
             for (String[] userArray : loadObjectList(resource.getFile())){
                 String name =userArray[0];
@@ -58,11 +70,12 @@ public class UserLoadService {
                 user.setRole(userRole);
                 user.setDescription(description);
                 user.setStatus(status);
-                userRepository.save(user);
+                result.add(userRepository.save(user));
             }
         } catch (IOException e) {
             logger.error("CSV file failed to load", e);
         }
+        return result;
     }
 
     private static List<String[]>  loadObjectList(File file) throws IOException {

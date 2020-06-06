@@ -1,4 +1,4 @@
-package com.payment.system.dao.repositories;
+package com.payment.system.dao.repositories.user;
 
 import java.util.Optional;
 

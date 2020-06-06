@@ -1,9 +1,6 @@
 package com.payment.system.dao.models.trx;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
@@ -15,20 +12,20 @@ import javax.validation.constraints.NotBlank;
 @DiscriminatorValue("REFUND")
 public class RefundTransaction extends Transaction {
 
+    @NotBlank
+    @Min(1)
+    private double amount;
+
+    @ManyToOne
+    @JoinColumn(name = "uuid", insertable = false, updatable = false)
+    protected ChargeTransaction reference_id;
+
     public RefundTransaction(){}
-    public RefundTransaction(Long uuid, ChargeTransaction reference_id, @NotBlank @Min(1) Long amount) {
+    public RefundTransaction(Long uuid, ChargeTransaction reference_id, @NotBlank @Min(1) double amount) {
         this.uuid=uuid;
         this.reference_id = reference_id;
         this.amount = amount;
     }
-
-    @OneToOne
-    @JoinColumn(name = "uuid")
-    protected ChargeTransaction reference_id;
-
-    @NotBlank
-    @Min(1)
-    private Long amount;
 
     @Override
     public String toString() {
@@ -40,5 +37,13 @@ public class RefundTransaction extends Transaction {
                 ", status=" + status +
                 ", merchant=" + merchant +
                 '}';
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 }

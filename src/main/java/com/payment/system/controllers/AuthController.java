@@ -1,18 +1,15 @@
 package com.payment.system.controllers;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import com.payment.system.dao.models.ERole;
 import com.payment.system.dao.models.EUserStatus;
 import com.payment.system.dao.models.Role;
 import com.payment.system.dao.models.User;
-import com.payment.system.dao.repositories.RoleRepository;
-import com.payment.system.dao.repositories.UserRepository;
+import com.payment.system.dao.repositories.user.RoleRepository;
+import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.request.RegisterUserRequest;
 import com.payment.system.payload.response.LoginResponse;

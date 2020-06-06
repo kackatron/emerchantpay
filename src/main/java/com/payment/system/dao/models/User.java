@@ -1,12 +1,8 @@
 package com.payment.system.dao.models;
 
-import com.payment.system.dao.repositories.RoleRepository;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.persistence.*;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
@@ -20,6 +16,7 @@ import javax.validation.constraints.Size;
                 @UniqueConstraint(columnNames = "name"), @UniqueConstraint(columnNames = "email")
         })
 public class User {
+    //Rename this when you have the time.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,7 +39,7 @@ public class User {
     private EUserStatus status;
 
     @Column
-    private Long totalTransactionSum;
+    private double totalTransactionSum;
 
     @NotBlank
     @Size(max = 120)
@@ -59,11 +56,10 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.totalTransactionSum = 0.0;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
     public void setId(Long id) {
         this.id = id;
@@ -119,19 +115,24 @@ public class User {
         switch (status.toLowerCase()) {
             case "active":
                 this.status = EUserStatus.ACTIVE;
+                break;
             case "inactive":
                 this.status = EUserStatus.INACTIVE;
+                break;
             default:
                 this.status = EUserStatus.INACTIVE;
+                break;
         }
     }
 
-    public Long getTotalTransactionSum() {
+    public double getTotalTransactionSum() {
         return totalTransactionSum;
     }
 
-    public void setTotalTransactionSum(Long totalTransactionSum) {
+    public void setTotalTransactionSum(double totalTransactionSum) {
         this.totalTransactionSum = totalTransactionSum;
     }
+
+
 }
 
