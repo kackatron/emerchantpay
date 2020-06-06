@@ -1,17 +1,15 @@
 package com.payment.system.dao.models.trx;
 
-import com.payment.system.dao.models.User;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+/**
+ * AuthorizeTransaction is transaction the verifies that desired amount is available on customers account and then blocks it.
+ */
 @Entity
 @DiscriminatorValue("AUTH")
 public class AuthorizeTransaction extends Transaction {
@@ -64,4 +62,16 @@ public class AuthorizeTransaction extends Transaction {
         this.customer_phone = customer_phone;
     }
 
+    @Override
+    public String toString() {
+        return "AuthorizeTransaction{" +
+                "amount=" + amount +
+                ", customer_email='" + customer_email + '\'' +
+                ", customer_phone='" + customer_phone + '\'' +
+                ", uuid=" + uuid +
+                ", dateTimeCreation=" + dateTimeCreation +
+                ", status=" + status +
+                ", merchant=" + merchant +
+                '}';
+    }
 }

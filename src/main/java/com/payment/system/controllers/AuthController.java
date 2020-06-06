@@ -96,33 +96,19 @@ public class AuthController {
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRole();
-        Set<Role> roles = new HashSet<>();
+        String strRoles = signUpRequest.getRole();
 
+        Role userRole;
         if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.MERCHANT)
+            userRole = roleRepository.findByName("")
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
+
         } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "administrator":
-                        Role adminRole = roleRepository.findByName(ERole.ADMINISTRATOR)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    case "merchant":
-                        Role modRole = roleRepository.findByName(ERole.MERCHANT)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(modRole);
-
-                        break;
-                }
-            });
+            userRole = roleRepository.findByName(strRoles)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
         }
 
-        user.setRoles(roles);
+        user.setRole(userRole);
         //Always create users active they can be deactivated later
         user.setStatus(EUserStatus.ACTIVE);
         user.setDescription(signUpRequest.getDescription());

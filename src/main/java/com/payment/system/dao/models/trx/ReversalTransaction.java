@@ -5,6 +5,9 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
+/**
+ * ReversalTransaction is transaction that cancels {@link AuthorizeTransaction}
+ */
 @Entity
 @DiscriminatorValue("REVERSE")
 public class ReversalTransaction extends Transaction {
@@ -27,4 +30,15 @@ public class ReversalTransaction extends Transaction {
     @OneToOne
     @JoinColumn(name = "uuid")
     protected AuthorizeTransaction reference_id;
+
+    @Override
+    public String toString() {
+        return "ReversalTransaction{" +
+                "reference_id=" + reference_id +
+                ", uuid=" + uuid +
+                ", dateTimeCreation=" + dateTimeCreation +
+                ", status=" + status +
+                ", merchant=" + merchant +
+                '}';
+    }
 }

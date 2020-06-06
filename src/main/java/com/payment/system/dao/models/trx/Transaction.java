@@ -7,6 +7,14 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
+
+/**
+ * Transaction is a JPA entity representing a single table that houses all classes that extend Transaction class:
+ *  - AuthorizeTransaction
+ *  - ChargeTransaction
+ *  - RefundTransaction
+ *  - ReversalTransaction
+ */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "TRX_TYPE")
@@ -32,6 +40,7 @@ public class Transaction {
     protected User merchant;
 
     public Transaction(){
+        status=ETrxStatus.APPROVED;
         dateTimeCreation = new Date();
     }
 

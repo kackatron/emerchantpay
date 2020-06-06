@@ -1,0 +1,5 @@
+name,description,email,password,role,status
+Neo,The Chosen One,neo1@gmai.com,matrix,merchant,active
+Morpheus,The Prophet,morph@gmai.com,matrix,merchant,active
+Trinity,The Lady,trin@abv.bg,matrix,merchant,active
+Mr.Smith,The Big Bad,robot@dir.bg,matrix,administrator,active

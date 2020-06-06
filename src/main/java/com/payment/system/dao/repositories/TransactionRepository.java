@@ -1,6 +1,5 @@
 package com.payment.system.dao.repositories;
 
-import com.payment.system.dao.models.User;
 import com.payment.system.dao.models.trx.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

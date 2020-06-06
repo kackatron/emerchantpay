@@ -1,5 +1,7 @@
 package com.payment.system.dao.models;
 
+import com.payment.system.dao.repositories.RoleRepository;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -8,10 +10,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
+
 /**
  * User is a DAO object representing an User in the system.
- *
- * */
+ */
 @Entity
 @Table(name = "users",
         uniqueConstraints = {
@@ -27,7 +29,7 @@ public class User {
     private String name;
 
     @NotBlank
-    @Size(max=255)
+    @Size(max = 255)
     private String description;
 
     @NotBlank
@@ -46,11 +48,9 @@ public class User {
     @Size(max = 120)
     private String password;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="roleId")
+    private Role role;
 
     public User() {
     }
@@ -93,13 +93,11 @@ public class User {
         this.password = password;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
+    public Role getRole() {
+        return role;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
+    public void setRole(Role role) { this.role = role; }
 
     public String getDescription() {
         return description;
@@ -113,7 +111,20 @@ public class User {
         return status;
     }
 
-    public void setStatus(EUserStatus status) { this.status = status; }
+    public void setStatus(EUserStatus status) {
+        this.status = status;
+    }
+
+    public void setStatus(String status) {
+        switch (status.toLowerCase()) {
+            case "active":
+                this.status = EUserStatus.ACTIVE;
+            case "inactive":
+                this.status = EUserStatus.INACTIVE;
+            default:
+                this.status = EUserStatus.INACTIVE;
+        }
+    }
 
     public Long getTotalTransactionSum() {
         return totalTransactionSum;
