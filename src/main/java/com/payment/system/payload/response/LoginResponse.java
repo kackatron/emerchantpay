@@ -90,4 +90,19 @@ public class LoginResponse {
     public void setRoles(List<String> roles) {
         this.roles = roles;
     }
+
+    @Override
+    public String toString() {
+        return "LoginResponse{" +
+                "token='" + token + '\'' +
+                ", type='" + type + '\'' +
+                ", id=" + id +
+                ", username='" + username + '\'' +
+                ", description='" + description + '\'' +
+                ", email='" + email + '\'' +
+                ", status='" + status + '\'' +
+                ", totalTransactionSum=" + totalTransactionSum +
+                ", roles=" + roles +
+                '}';
+    }
 }

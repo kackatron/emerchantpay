@@ -1,5 +1,6 @@
 package com.payment.system.dao.repositories.trx;
 
+import com.payment.system.dao.models.User;
 import com.payment.system.dao.models.trx.Transaction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     @Query("SELECT t FROM Transaction t WHERE t.processed = 0 and t.dateTimeCreation < ?1")
     Collection<Transaction> findAllProcessedTransactionsOlderThan(Date date);
+
+    @Query("SELECT t FROM Transaction t WHERE t.merchant = ?1")
+    List<Transaction> findAllForUser(User user);
 }

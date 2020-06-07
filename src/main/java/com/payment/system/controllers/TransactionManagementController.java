@@ -1,39 +1,46 @@
 package com.payment.system.controllers;
 
 import com.payment.system.dao.models.trx.Transaction;
-import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.security.UserDetailsImpl;
 import com.payment.system.services.trx.TransactionProcessingException;
 import com.payment.system.services.trx.TransactionRegistrationService;
+import com.payment.system.services.trx.TransactionRetrievalException;
+import com.payment.system.services.trx.TransactionRetrievalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/payment")
-public class LoadTransactionController {
+@RequestMapping("/trx")
+public class TransactionManagementController {
     //Exposed for test purposes
     public static final String AUTHORIZATION = "Authorization";
     public static final String CHARGE = "Charge";
     public static final String REFUND = "Refund";
     public static final String REVERSAL = "Reversal";
 
-    private static final Logger logger = LoggerFactory.getLogger(LoadTransactionController.class);
+    private static final Logger logger = LoggerFactory.getLogger(TransactionManagementController.class);
 
     @Autowired
     TransactionRegistrationService transactionRegistrationService;
 
+    @Autowired
+    TransactionRetrievalService transactionRetrievalService;
+
     @RequestMapping("/load")
-    public ResponseEntity loadPayment(@RequestBody RegisterTransaction registerTransaction) {
+    public ResponseEntity loadTransactions(@RequestBody RegisterTransaction registerTransaction) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication;
         logger.info("Received {} from merchant {}", registerTransaction, userDetails);
@@ -75,6 +82,20 @@ public class LoadTransactionController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new TransactionProcessingException("There is no transaction with type " + registerTransaction.getRefTrx()));
             }
+        }
+    }
+    @RequestMapping("/retrieve")
+    @PreAuthorize("hasRole('merchant')")
+    public ResponseEntity retrieveTransaction() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication;
+        logger.info("Retrieve all current transactions for merchant {}",  userDetails);
+        try {
+            List<Transaction> transactionList = transactionRetrievalService.retrieveTransactionsForUser(userDetails);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(transactionList);
+        } catch (TransactionRetrievalException e) {
+            logger.error("Failed to retrieve transactions", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
         }
     }
 }

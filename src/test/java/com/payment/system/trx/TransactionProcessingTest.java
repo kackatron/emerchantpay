@@ -1,24 +1,23 @@
 package com.payment.system.trx;
 
 
-import com.payment.system.controllers.LoadTransactionController;
+import com.payment.system.controllers.TransactionManagementController;
 import com.payment.system.dao.models.trx.*;
 import com.payment.system.dao.repositories.trx.TransactionRepository;
 import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.security.UserDetailsImpl;
-import com.payment.system.services.trx.TransactionCleanupService;
-import com.payment.system.services.trx.TransactionProcessingException;
-import com.payment.system.services.trx.TransactionProcessingService;
+import com.payment.system.services.trx.*;
 import com.payment.system.services.user.UserLoadService;
 import com.payment.system.dao.models.User;
 import com.payment.system.dao.repositories.user.UserRepository;
-import com.payment.system.services.trx.TransactionRegistrationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,6 +43,9 @@ public class TransactionProcessingTest {
     @Autowired
     TransactionCleanupService transactionCleanupService;
 
+    @Autowired
+    TransactionRetrievalService transactionRetrievalService;
+
 
     private User testUser;
 
@@ -65,12 +67,12 @@ public class TransactionProcessingTest {
     @Test
     public void processHappyPath() throws TransactionProcessingException {
         RegisterTransaction registerAuthorizationTransaction =
-                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+                new RegisterTransaction("1", "100.0", null, TransactionManagementController.AUTHORIZATION, customerInfo);
         AuthorizeTransaction authorizeTransaction = transactionRegistrationService
                 .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
         RegisterTransaction registerChargeTransaction =
                 new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
-                        LoadTransactionController.CHARGE, null);
+                        TransactionManagementController.CHARGE, null);
         transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
 
         transactionProcessingService.processTransactions();
@@ -83,17 +85,17 @@ public class TransactionProcessingTest {
     @Test
     public void processRevert() throws TransactionProcessingException {
         RegisterTransaction registerAuthorizationTransaction =
-                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+                new RegisterTransaction("1", "100.0", null, TransactionManagementController.AUTHORIZATION, customerInfo);
         AuthorizeTransaction authorizeTransaction = transactionRegistrationService
                 .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
 
         RegisterTransaction registerChargeTransaction =
                 new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
-                        LoadTransactionController.CHARGE, null);
+                        TransactionManagementController.CHARGE, null);
         ChargeTransaction chargeTransaction = transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
 
         RegisterTransaction registerRefundTransaction = new RegisterTransaction("3", "100.",
-                chargeTransaction.getUuid().toString(), LoadTransactionController.REFUND, null);
+                chargeTransaction.getUuid().toString(), TransactionManagementController.REFUND, null);
         transactionRegistrationService.registerRefundTransaction(registerRefundTransaction);
 
         transactionProcessingService.processTransactions();
@@ -106,12 +108,12 @@ public class TransactionProcessingTest {
     @Test
     public void ProcessReverse() throws TransactionProcessingException {
         RegisterTransaction registerAuthorizationTransaction =
-                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+                new RegisterTransaction("1", "100.0", null, TransactionManagementController.AUTHORIZATION, customerInfo);
         AuthorizeTransaction authorizeTransaction = transactionRegistrationService
                 .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
 
         RegisterTransaction registerReverseTransaction = new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
-                LoadTransactionController.REVERSAL, null);
+                TransactionManagementController.REVERSAL, null);
         transactionRegistrationService.registerReversalTransaction(registerReverseTransaction);
         authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
                 .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
@@ -119,23 +121,23 @@ public class TransactionProcessingTest {
         transactionProcessingService.processTransactions();
         authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
                 .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
-        assertEquals(ETrxStatus.REVERSED,authorizeTransaction.getStatus(), "Authorization transaction is not in reversed state after registering a reversal transaction.");
+        assertEquals(ETrxStatus.REVERSED, authorizeTransaction.getStatus(), "Authorization transaction is not in reversed state after registering a reversal transaction.");
     }
 
     @Test
     public void ProcessReverseAfterCharge() throws TransactionProcessingException {
         RegisterTransaction registerAuthorizationTransaction =
-                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+                new RegisterTransaction("1", "100.0", null, TransactionManagementController.AUTHORIZATION, customerInfo);
         AuthorizeTransaction authorizeTransaction = transactionRegistrationService
                 .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
 
         RegisterTransaction registerChargeTransaction =
                 new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
-                        LoadTransactionController.CHARGE, null);
+                        TransactionManagementController.CHARGE, null);
         transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
 
         RegisterTransaction registerReverseTransaction = new RegisterTransaction("3", "100.0",
-                authorizeTransaction.getUuid().toString(), LoadTransactionController.REVERSAL, null);
+                authorizeTransaction.getUuid().toString(), TransactionManagementController.REVERSAL, null);
 
         ReversalTransaction reversalTransaction = transactionRegistrationService.registerReversalTransaction(registerReverseTransaction);
         authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
@@ -149,11 +151,32 @@ public class TransactionProcessingTest {
                 .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
 
         reversalTransaction = (ReversalTransaction) transactionRepository.findByUuid(reversalTransaction
-                .getUuid()).orElseThrow(()->new TransactionProcessingException("Can not find the reversal transaction"));
+                .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the reversal transaction"));
 
-        assertEquals(ETrxStatus.ERROR,reversalTransaction.getStatus(), "Authorization transaction is reversed but it was already charged.");
-        assertEquals(ETrxStatus.APPROVED,authorizeTransaction.getStatus(), "Authorization transaction is reversed but it was already charged.");
+        assertEquals(ETrxStatus.ERROR, reversalTransaction.getStatus(), "Authorization transaction is reversed but it was already charged.");
+        assertEquals(ETrxStatus.APPROVED, authorizeTransaction.getStatus(), "Authorization transaction is reversed but it was already charged.");
     }
+
+    @Test
+    public void retrieveTransactionsForAnUser() throws TransactionProcessingException, TransactionRetrievalException {
+        int transactionCount = 10;
+        for (int trxUid = 1; trxUid <= transactionCount; trxUid++) {
+            RegisterTransaction registerAuthorizationTransaction =
+                    new RegisterTransaction(String.valueOf(trxUid), "100.0", null, TransactionManagementController.AUTHORIZATION, customerInfo);
+            AuthorizeTransaction authorizeTransaction = transactionRegistrationService
+                    .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
+
+            RegisterTransaction registerChargeTransaction =
+                    new RegisterTransaction(String.valueOf(++trxUid), "100.0", authorizeTransaction.getUuid().toString(),
+                            TransactionManagementController.CHARGE, null);
+            transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
+        }
+
+        List<Transaction> transactionsOfTestUser = transactionRetrievalService.retrieveTransactionsForUser(UserDetailsImpl.getUserDetailsImpl(testUser));
+        assertEquals(10, transactionsOfTestUser.size(), "Transactions for the user are not the expected count.");
+        transactionRepository.deleteAll(transactionsOfTestUser);
+    }
+
 
     @AfterEach
     public void tearDown() throws InterruptedException {
