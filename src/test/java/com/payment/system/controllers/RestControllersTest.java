@@ -2,10 +2,7 @@ package com.payment.system.controllers;
 
 import com.payment.system.dao.models.User;
 import com.payment.system.dao.models.trx.Transaction;
-import com.payment.system.payload.request.CustomerInfo;
-import com.payment.system.payload.request.LoginRequest;
-import com.payment.system.payload.request.RegisterTransaction;
-import com.payment.system.payload.request.RetrieveTransactionsRequest;
+import com.payment.system.payload.request.*;
 import com.payment.system.payload.response.LoginResponse;
 import com.payment.system.services.user.UserManagementService;
 import org.graalvm.compiler.lir.LIRInstruction;
@@ -84,6 +81,21 @@ public class RestControllersTest {
                 HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>(){});
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(5, response.getBody().size(), "Number of Loaded users is different from expected.");
+    }
+
+    @Test
+    public void deleteUsers() {
+        TestRestTemplate restTemplate = new TestRestTemplate();
+        httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith","matrix"));
+        HttpEntity<DeleteUserRequest> deleteRequest = new HttpEntity<>(new DeleteUserRequest("Neo"), httpHeaders);
+        ResponseEntity<String> deleteResponse =  restTemplate.exchange(createURLWithPort("/usr/delete"),
+                HttpMethod.POST, deleteRequest, String.class);
+        assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
+
+        HttpEntity<String> retrieveUsers = new HttpEntity<>("none", httpHeaders);
+        ResponseEntity<List<User>> retrieveResponse =  restTemplate.exchange(createURLWithPort("/usr/retrieve"),
+                HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>(){});
+        assertEquals(4, retrieveResponse.getBody().size(), "Number of Loaded users is different from expected.");
     }
 
 
