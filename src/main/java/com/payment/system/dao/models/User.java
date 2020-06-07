@@ -45,9 +45,7 @@ public class User {
     @Size(max = 120)
     private String password;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="roleId")
-    private Role role;
+    private String role;
 
     public User() {
     }
@@ -89,11 +87,13 @@ public class User {
         this.password = password;
     }
 
-    public Role getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(Role role) { this.role = role; }
+    public void setRole(String role) {
+        this.role = "ROLE_"+role.toUpperCase();
+    }
 
     public String getDescription() {
         return description;

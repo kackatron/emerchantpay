@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,9 +41,11 @@ public class TransactionManagementController {
     TransactionRetrievalService transactionRetrievalService;
 
     @RequestMapping("/load")
+    @PreAuthorize("hasRole('ROLE_MERCHANT')")
     public ResponseEntity loadTransactions(@RequestBody RegisterTransaction registerTransaction) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication;
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("Received {} from merchant {}", registerTransaction, userDetails);
         Transaction transaction = null;
         switch (registerTransaction.getTypeOfTrx()) {
@@ -51,7 +54,7 @@ public class TransactionManagementController {
                 try {
                     transaction = transactionRegistrationService.registerAuthorizationTransaction(userDetails,registerTransaction);
                     logger.info("Successful registering of transaction {}", transaction);
-                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(transaction);
+                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(String.valueOf(transaction.getUuid()));
                 } catch (TransactionProcessingException e) {
                     logger.error("Failed registering Authorization transaction ", e);
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
@@ -61,7 +64,7 @@ public class TransactionManagementController {
                 logger.info("Transaction is of type Charge");
                 try {
                     transaction = transactionRegistrationService.registerChargeTransaction(registerTransaction);
-                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(transaction);
+                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(String.valueOf(transaction.getUuid()));
                 } catch (TransactionProcessingException e) {
                     logger.error("Failed to register Charge transaction", e);
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
@@ -71,7 +74,7 @@ public class TransactionManagementController {
                 logger.info("Transaction is of type Refund");
                 try {
                     transaction = transactionRegistrationService.registerRefundTransaction(registerTransaction);
-                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(transaction);
+                    return ResponseEntity.status(HttpStatus.ACCEPTED).body(String.valueOf(transaction.getUuid()));
                 } catch (TransactionProcessingException e) {
                     logger.error("Failed to register Charge transaction", e);
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);

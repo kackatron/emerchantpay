@@ -2,9 +2,7 @@ package com.payment.system.services.user;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
-import com.payment.system.dao.models.Role;
 import com.payment.system.dao.models.User;
-import com.payment.system.dao.repositories.user.RoleRepository;
 import com.payment.system.dao.repositories.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +29,6 @@ public class UserLoadService {
 
     @Autowired
     UserRepository userRepository;
-
-    @Autowired
-    RoleRepository roleRepository;
 
     @Autowired
     ResourceLoader resourceLoader;
@@ -65,9 +60,7 @@ public class UserLoadService {
                 String role = userArray[4];
                 String status = userArray[5];
                 User user = userRepository.findByName(name).orElse(new User(name,email,passEncoder.encode(password)));
-                Role userRole = roleRepository.findByName(role).orElse(new Role(role));
-                roleRepository.save(userRole);
-                user.setRole(userRole);
+                user.setRole(role);
                 user.setDescription(description);
                 user.setStatus(status);
                 result.add(userRepository.save(user));

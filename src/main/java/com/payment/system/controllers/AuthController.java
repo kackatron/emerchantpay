@@ -6,9 +6,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import com.payment.system.dao.models.EUserStatus;
-import com.payment.system.dao.models.Role;
 import com.payment.system.dao.models.User;
-import com.payment.system.dao.repositories.user.RoleRepository;
 import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.request.RegisterUserRequest;
@@ -41,9 +39,6 @@ public class AuthController {
     UserRepository userRepository;
 
     @Autowired
-    RoleRepository roleRepository;
-
-    @Autowired
     PasswordEncoder encoder;
 
     @Autowired
@@ -73,7 +68,7 @@ public class AuthController {
                 userDetails.getTotalTransactionSum(),
                 roles));
     }
-
+    //Unneded for the moment but might be in handy later
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserRequest signUpRequest) {
         if (userRepository.existsByName(signUpRequest.getUsername())) {
@@ -95,17 +90,6 @@ public class AuthController {
 
         String strRoles = signUpRequest.getRole();
 
-        Role userRole;
-        if (strRoles == null) {
-            userRole = roleRepository.findByName("")
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-
-        } else {
-            userRole = roleRepository.findByName(strRoles)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-        }
-
-        user.setRole(userRole);
         //Always create users active they can be deactivated later
         user.setStatus(EUserStatus.ACTIVE);
         user.setDescription(signUpRequest.getDescription());

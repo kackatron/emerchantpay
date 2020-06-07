@@ -16,6 +16,8 @@ public class LoginResponse {
     private double totalTransactionSum;
     private List<String> roles;
 
+    public LoginResponse(){}
+
     public LoginResponse(String token, Long id, String username, String email, String description, String status, double totalTransactionSum, List<String> roles) {
         this.token = token;
         this.id = id;
