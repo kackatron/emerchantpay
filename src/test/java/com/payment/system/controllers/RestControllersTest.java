@@ -1,12 +1,14 @@
 package com.payment.system.controllers;
 
 import com.payment.system.dao.models.User;
+import com.payment.system.dao.models.trx.Transaction;
 import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.payload.request.RetrieveTransactionsRequest;
 import com.payment.system.payload.response.LoginResponse;
 import com.payment.system.services.user.UserManagementService;
+import org.graalvm.compiler.lir.LIRInstruction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,17 +18,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RestControllersTest {
-    private static final Logger logger = LoggerFactory.getLogger(RestControllersTest.class);
     @LocalServerPort
     private int port;
 
@@ -50,9 +53,9 @@ public class RestControllersTest {
     }
 
     @Test
-    public void loadTransactions() throws Exception {
+    public void registerAndRetrieveTransactions() {
         TestRestTemplate restTemplate = new TestRestTemplate();
-        httpHeaders.setBearerAuth(acquireJwtToken());
+        httpHeaders.setBearerAuth(acquireJwtToken(testUser.getName(),"test"));
         CustomerInfo customerInfo = new CustomerInfo();
         customerInfo.setCustomer_email("test@test.tes");
         customerInfo.setCustomer_phone("999-999-999");
@@ -63,23 +66,35 @@ public class RestControllersTest {
                 createURLWithPort("/trx/load"), HttpMethod.POST, registerTransaction, String.class);
         assertEquals(HttpStatus.ACCEPTED, registerResponse.getStatusCode());
 
-        HttpEntity<RetrieveTransactionsRequest> retrieveRequest = new HttpEntity<>(new RetrieveTransactionsRequest(""),httpHeaders);
-        ResponseEntity<ArrayList> retrieveResponse = restTemplate.exchange(
-                createURLWithPort("/trx/retrieve"), HttpMethod.POST,retrieveRequest, ArrayList.class);
+        HttpEntity<RetrieveTransactionsRequest> retrieveRequest = new HttpEntity<>(new RetrieveTransactionsRequest(""), httpHeaders);
+        ResponseEntity<List<Transaction>> retrieveResponse = restTemplate.exchange(
+                createURLWithPort("/trx/retrieve"), HttpMethod.POST, retrieveRequest,  new ParameterizedTypeReference<List<Transaction>>(){});
         assertEquals(HttpStatus.ACCEPTED, retrieveResponse.getStatusCode());
         assertNotNull(retrieveResponse.getBody());
-        assertEquals(1,((LinkedHashMap)retrieveResponse.getBody().get(0)).get("uuid"),"This is not the same transaction!");
-        assertEquals(201.0,((LinkedHashMap)retrieveResponse.getBody().get(0)).get("amount"),"This is not the same transaction!");
-
+        assertEquals(1, retrieveResponse.getBody().get(0).getUuid(),"This is not the same transaction!");
+        assertEquals(201.0, retrieveResponse.getBody().get(0).getAmount(), "This is not the same transaction!");
     }
+
+    @Test
+    public void retrieveUsers() {
+        TestRestTemplate restTemplate = new TestRestTemplate();
+        httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith","matrix"));
+        HttpEntity<String> retrieveUsers = new HttpEntity<>("none", httpHeaders);
+        ResponseEntity<List<User>> response =  restTemplate.exchange(createURLWithPort("/usr/retrieve"),
+                HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>(){});
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(5, response.getBody().size(), "Number of Loaded users is different from expected.");
+    }
+
+
 
     private String createURLWithPort(String uri) {
         return "http://localhost:" + port + uri;
     }
 
-    private String acquireJwtToken() {
+    private String acquireJwtToken(String userName, String password) {
         // A little hack here, it will take a too much time to figure out a way to get the Test user password in pure text.
-        HttpEntity<LoginRequest> loginRequest = new HttpEntity<LoginRequest>(new LoginRequest(testUser.getName(), "test"), httpHeaders);
+        HttpEntity<LoginRequest> loginRequest = new HttpEntity<LoginRequest>(new LoginRequest(userName, password), httpHeaders);
         ResponseEntity<LoginResponse> response = restTemplate.exchange(
                 createURLWithPort("/api/auth/signin"), HttpMethod.POST, loginRequest, LoginResponse.class);
         LoginResponse loginResponse = response.getBody();

@@ -20,7 +20,7 @@ public class LaunchApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(LaunchApplication.class, args);
 	}
-	@Bean
+	/*@Bean
 	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
 		return args -> {
 			//Helper code to investigate loading issues
@@ -31,7 +31,5 @@ public class LaunchApplication {
 				System.out.println(beanName);
 			}
 		};
-	}
-
-
+	}*/
 }

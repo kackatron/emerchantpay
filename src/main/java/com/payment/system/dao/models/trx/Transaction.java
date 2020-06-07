@@ -39,12 +39,16 @@ public class Transaction {
 
 
     @ManyToOne
-    @JoinColumn(updatable=true)
+    @JoinColumn(updatable = true)
     protected User merchant;
 
     @OneToOne
-    @JoinColumn(updatable=true)
+    @JoinColumn(updatable = true)
     protected Transaction reference_id;
+
+    @NotBlank
+    @Min(1)
+    protected double amount;
 
     // ETrxProcessed marks if the TransactionProcessingService gone through this transaction. If it is processed its vailable for
     protected ETrxProcessed processed;
@@ -93,6 +97,7 @@ public class Transaction {
     public void setProcessed(ETrxProcessed processed) {
         this.processed = processed;
     }
+
     public Transaction getReference_id() {
         return reference_id;
     }
@@ -100,5 +105,9 @@ public class Transaction {
     public void setReference_id(Transaction reference_id) {
         this.reference_id = reference_id;
     }
+
+    public double getAmount() { return amount; }
+
+    public void setAmount(double amount) { this.amount = amount; }
 
 }

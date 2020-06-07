@@ -23,6 +23,7 @@ public class User {
 
     @NotBlank
     @Size(max = 20)
+    @Column(unique = true)
     private String name;
 
     @NotBlank

@@ -3,6 +3,8 @@ package com.payment.system.services.user;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.payment.system.dao.models.User;
+import com.payment.system.dao.models.trx.Transaction;
+import com.payment.system.dao.repositories.trx.TransactionRepository;
 import com.payment.system.dao.repositories.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,32 +38,47 @@ public class UserManagementService {
     @Autowired
     PasswordEncoder passEncoder;
 
+    @Autowired
+    TransactionRepository transactionRepository;
+
     private static String csvFile = "classpath:Users.csv";
 
-    public String getCsvFile() { return csvFile; }
+    public String getCsvFile() {
+        return csvFile;
+    }
 
     public void setCsvFile(String csvFile) {
         UserManagementService.csvFile = csvFile;
     }
 
 
-    public List<User> getAllUsers(){
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    public void deleteUser(String username) throws UserProcessingException {
+        User user = userRepository.findByName(username).orElseThrow(() -> new UserProcessingException("There is no such user " + username));
+        List<Transaction> transactions = transactionRepository.findAllForUser(user);
+        if (!transactions.isEmpty()) {
+            throw new UserProcessingException(String.format("There are transactions for this user %s : \n (%s) ", user, transactions));
+        }
+        userRepository.delete(user);
+    }
+
     @PostConstruct
-    public List<User> loadUsers(){
+    public List<User> loadUsers() {
         Resource resource;
         resource = resourceLoader.getResource(csvFile);
-        List<User> result=new ArrayList<>();
+        List<User> result = new ArrayList<>();
         try {
-            for (String[] userArray : loadObjectList(resource.getFile())){
-                String name =userArray[0];
-                String description =userArray[1];
+            for (String[] userArray : loadObjectList(resource.getFile())) {
+                String name = userArray[0];
+                String description = userArray[1];
                 String email = userArray[2];
                 String password = userArray[3];
                 String role = userArray[4];
                 String status = userArray[5];
-                User user = userRepository.findByName(name).orElse(new User(name,email,passEncoder.encode(password)));
+                User user = userRepository.findByName(name).orElse(new User(name, email, passEncoder.encode(password)));
                 user.setRole(role);
                 user.setDescription(description);
                 user.setStatus(status);
@@ -73,7 +90,7 @@ public class UserManagementService {
         return result;
     }
 
-    private static List<String[]>  loadObjectList(File file) throws IOException {
+    private static List<String[]> loadObjectList(File file) throws IOException {
         FileReader filereader = new FileReader(file);
 
         // create csvReader object and skip first Line

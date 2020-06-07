@@ -13,9 +13,6 @@ import javax.validation.constraints.Size;
 @Entity
 @DiscriminatorValue("AUTH")
 public class AuthorizeTransaction extends Transaction {
-    @NotBlank
-    @Min(1)
-    private double amount;
 
     @Size(max = 50)
     @Email

@@ -12,10 +12,6 @@ import javax.validation.constraints.NotBlank;
 @DiscriminatorValue("REFUND")
 public class RefundTransaction extends Transaction {
 
-    @NotBlank
-    @Min(1)
-    private double amount;
-
     public RefundTransaction(){}
     public RefundTransaction(Long uuid, ChargeTransaction reference_id, @NotBlank @Min(1) double amount) {
         this.uuid=uuid;
@@ -34,13 +30,5 @@ public class RefundTransaction extends Transaction {
                 ", status=" + status +
                 ", merchant=" + merchant +
                 '}';
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
     }
 }

@@ -64,7 +64,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/auth/**")
                 .permitAll()
                 .antMatchers("/trx/**")
-                .hasAnyRole("MERCHANT","ADMINISTRATOR")
+                .permitAll()
                 .anyRequest()
                 .authenticated();
 

@@ -9,7 +9,6 @@ import com.payment.system.dao.models.EUserStatus;
 import com.payment.system.dao.models.User;
 import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.LoginRequest;
-import com.payment.system.payload.request.RegisterUserRequest;
 import com.payment.system.payload.response.LoginResponse;
 import com.payment.system.payload.response.SimpleResponse;
 import com.payment.system.security.JwtHandler;
@@ -67,33 +66,5 @@ public class AuthController {
                 userDetails.getStatus(),
                 userDetails.getTotalTransactionSum(),
                 roles));
-    }
-    //Unneded for the moment but might be in handy later
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUserRequest signUpRequest) {
-        if (userRepository.existsByName(signUpRequest.getUsername())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new SimpleResponse("Error: Username is already taken!"));
-        }
-
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new SimpleResponse("Error: Email is already in use!"));
-        }
-
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-
-        String strRoles = signUpRequest.getRole();
-
-        //Always create users active they can be deactivated later
-        user.setStatus(EUserStatus.ACTIVE);
-        user.setDescription(signUpRequest.getDescription());
-        userRepository.save(user);
-        return ResponseEntity.ok(new SimpleResponse("User registered successfully!"));
     }
 }

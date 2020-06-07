@@ -13,10 +13,6 @@ import javax.validation.constraints.Size;
 @DiscriminatorValue("CHRG")
 public class ChargeTransaction extends Transaction{
 
-    @NotBlank
-    @Min(1)
-    private double amount;
-
     public ChargeTransaction(){
     }
     public ChargeTransaction(@NotBlank Long uuid, @NotBlank @Size(max = 40) AuthorizeTransaction reference_id, @NotBlank @Min(1) double amount) {
@@ -24,14 +20,6 @@ public class ChargeTransaction extends Transaction{
         this.reference_id = reference_id;
         this.amount = amount;
         this.merchant = reference_id.getMerchant();
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
     }
 
     @Override
