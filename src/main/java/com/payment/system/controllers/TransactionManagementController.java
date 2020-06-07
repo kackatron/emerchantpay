@@ -42,9 +42,11 @@ public class TransactionManagementController {
     @RequestMapping("/load")
     @PreAuthorize("hasRole('ROLE_MERCHANT')")
     public ResponseEntity loadTransactions(@RequestBody RegisterTransaction registerTransaction) {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        if (userDetails.getStatus().equals("INACTIVE")) {
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Merchant is INACTIVE");
+        }
         logger.info("Received {} from merchant {}", registerTransaction, userDetails);
         Transaction transaction = null;
         switch (registerTransaction.getTypeOfTrx()) {
