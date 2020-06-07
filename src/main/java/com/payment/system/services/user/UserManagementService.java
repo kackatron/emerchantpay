@@ -24,8 +24,8 @@ import java.util.List;
  * classpath of the application
  */
 @Service
-public class UserLoadService {
-    private static final Logger logger = LoggerFactory.getLogger(UserLoadService.class);
+public class UserManagementService {
+    private static final Logger logger = LoggerFactory.getLogger(UserManagementService.class);
 
     @Autowired
     UserRepository userRepository;
@@ -38,14 +38,16 @@ public class UserLoadService {
 
     private static String csvFile = "classpath:Users.csv";
 
-    public String getCsvFile() {
-        return csvFile;
-    }
+    public String getCsvFile() { return csvFile; }
 
     public void setCsvFile(String csvFile) {
-        UserLoadService.csvFile = csvFile;
+        UserManagementService.csvFile = csvFile;
     }
 
+
+    public List<User> getAllUsers(){
+        return userRepository.findAll();
+    }
     @PostConstruct
     public List<User> loadUsers(){
         Resource resource;

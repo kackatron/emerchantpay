@@ -8,7 +8,7 @@ import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.security.UserDetailsImpl;
 import com.payment.system.services.trx.*;
-import com.payment.system.services.user.UserLoadService;
+import com.payment.system.services.user.UserManagementService;
 import com.payment.system.dao.models.User;
 import com.payment.system.dao.repositories.user.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +29,7 @@ public class TransactionProcessingTest {
     TransactionRegistrationService transactionRegistrationService;
 
     @Autowired
-    UserLoadService userLoadService;
+    UserManagementService userManagementService;
 
     @Autowired
     UserRepository userRepository;
@@ -54,8 +54,8 @@ public class TransactionProcessingTest {
     //Tests a loading of Users from given csv.
     @BeforeEach
     public void setup() {
-        userLoadService.setCsvFile("classpath:TestUsers.csv");
-        testUser = userLoadService.loadUsers().get(0);
+        userManagementService.setCsvFile("classpath:TestUsers.csv");
+        testUser = userManagementService.loadUsers().get(0);
         assertNotNull(testUser, "Loading of user failed, it returned Null");
         // This is the only user in TestUsers.csv, on later date make this comparison dynamic.
         assertEquals("Test", testUser.getName());

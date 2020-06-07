@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service that processes all pending transactions
+ */
 @Service
 public class TransactionProcessingService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionProcessingService.class);
@@ -28,8 +31,9 @@ public class TransactionProcessingService {
      * In case of success it marks them Processed, including their referential transactions, if there are such.
      * In case of failure it marks them Processed and sets their status to ERROR and does not change the referenced transactions,
      * if there are such.
+     * Its scheduled to run on two minutes.
      */
-    @Scheduled
+    @Scheduled(fixedRate = 3*60*1000)
     @Transactional
     public void processTransactions() {
         logger.info("Start processing transactions.");

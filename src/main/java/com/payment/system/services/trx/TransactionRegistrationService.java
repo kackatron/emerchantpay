@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+/**
+ * Service that covers registration of all kinds of transactions.
+ */
 @Service
 @Transactional
 public class TransactionRegistrationService {

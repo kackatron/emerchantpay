@@ -1,15 +1,12 @@
 package com.payment.system.controllers;
 
-import antlr.collections.List;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.system.dao.models.User;
-import com.payment.system.dao.models.trx.Transaction;
 import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.payload.request.RetrieveTransactionsRequest;
 import com.payment.system.payload.response.LoginResponse;
-import com.payment.system.services.user.UserLoadService;
+import com.payment.system.services.user.UserManagementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,11 +17,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,14 +35,14 @@ public class RestControllersTest {
     HttpHeaders httpHeaders = new HttpHeaders();
 
     @Autowired
-    UserLoadService userLoadService;
+    UserManagementService userManagementService;
 
     User testUser;
 
     @BeforeEach
     public void setup() {
-        userLoadService.setCsvFile("classpath:TestUsers.csv");
-        testUser = userLoadService.loadUsers().get(0);
+        userManagementService.setCsvFile("classpath:TestUsers.csv");
+        testUser = userManagementService.loadUsers().get(0);
         assertNotNull(testUser, "Loading of user failed, it returned Null");
         // This is the only user in TestUsers.csv, on later date make this comparison dynamic.
         assertEquals("Test", testUser.getName());
@@ -57,7 +52,7 @@ public class RestControllersTest {
     @Test
     public void loadTransactions() throws Exception {
         TestRestTemplate restTemplate = new TestRestTemplate();
-        httpHeaders.setBearerAuth(acquireJWTtoken());
+        httpHeaders.setBearerAuth(acquireJwtToken());
         CustomerInfo customerInfo = new CustomerInfo();
         customerInfo.setCustomer_email("test@test.tes");
         customerInfo.setCustomer_phone("999-999-999");
@@ -82,7 +77,7 @@ public class RestControllersTest {
         return "http://localhost:" + port + uri;
     }
 
-    private String acquireJWTtoken() {
+    private String acquireJwtToken() {
         // A little hack here, it will take a too much time to figure out a way to get the Test user password in pure text.
         HttpEntity<LoginRequest> loginRequest = new HttpEntity<LoginRequest>(new LoginRequest(testUser.getName(), "test"), httpHeaders);
         ResponseEntity<LoginResponse> response = restTemplate.exchange(

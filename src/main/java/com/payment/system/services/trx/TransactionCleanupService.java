@@ -12,12 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Date;
 
+/**
+ * TransactionCleanupService is a service that cleans up already processed transactions older than parameterised trxAge.
+ * The default value is one hour
+ */
 @Service
 public class TransactionCleanupService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionProcessingService.class);
 
     //Time to live of transaction in milliseconds. Default is one hour.
-    private static int trxAge = 60 * 60 * 60 * 1000;
+    private static int trxAge = 3600 * 1000;
 
     @Autowired
     TransactionRepository transactionRepository;
@@ -31,7 +35,10 @@ public class TransactionCleanupService {
         TransactionCleanupService.trxAge = trxAge;
     }
 
-    @Scheduled
+    /**
+     * Cleanup job scheduled on every hour.
+     */
+    @Scheduled(fixedRate = 3600 * 1000)
     @Transactional
     public void cleanTransactions() {
         Date olderThan = new Date(System.currentTimeMillis() - trxAge);

@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Service that covers the retrieving of transactions.
+ */
 @Service
 @Transactional
 public class TransactionRetrievalService {
