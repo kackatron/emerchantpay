@@ -1,10 +1,13 @@
 package com.payment.system.controllers;
 
+import antlr.collections.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.system.dao.models.User;
+import com.payment.system.dao.models.trx.Transaction;
 import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.request.RegisterTransaction;
+import com.payment.system.payload.request.RetrieveTransactionsRequest;
 import com.payment.system.payload.response.LoginResponse;
 import com.payment.system.services.user.UserLoadService;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +21,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,9 +42,6 @@ public class RestControllersTest {
     @Autowired
     UserLoadService userLoadService;
 
-    @Autowired
-    PasswordEncoder passEncoder;
-
     User testUser;
 
     @BeforeEach
@@ -53,25 +57,37 @@ public class RestControllersTest {
     @Test
     public void loadTransactions() throws Exception {
         TestRestTemplate restTemplate = new TestRestTemplate();
-        // A little hack here, it will take a too much time to figure out a way to get the Test user password in pure text.
-        HttpEntity<LoginRequest> loginRequest = new HttpEntity<LoginRequest>(new LoginRequest(testUser.getName(), "test"), httpHeaders);
-        ResponseEntity<LoginResponse> response = restTemplate.exchange(
-                createURLWithPort("/api/auth/signin"), HttpMethod.POST, loginRequest, LoginResponse.class);
-        LoginResponse loginResponse = response.getBody();
+        httpHeaders.setBearerAuth(acquireJWTtoken());
         CustomerInfo customerInfo = new CustomerInfo();
         customerInfo.setCustomer_email("test@test.tes");
         customerInfo.setCustomer_phone("999-999-999");
-        httpHeaders.setBearerAuth(loginResponse.getToken());
         HttpEntity<RegisterTransaction> registerTransaction =
                 new HttpEntity<>(new RegisterTransaction("1", "201", "",
                         TransactionManagementController.AUTHORIZATION, customerInfo), httpHeaders);
         ResponseEntity<String> registerResponse = restTemplate.exchange(
                 createURLWithPort("/trx/load"), HttpMethod.POST, registerTransaction, String.class);
         assertEquals(HttpStatus.ACCEPTED, registerResponse.getStatusCode());
-        logger.info(String.valueOf(response.getStatusCode()));
+
+        HttpEntity<RetrieveTransactionsRequest> retrieveRequest = new HttpEntity<>(new RetrieveTransactionsRequest(""),httpHeaders);
+        ResponseEntity<ArrayList> retrieveResponse = restTemplate.exchange(
+                createURLWithPort("/trx/retrieve"), HttpMethod.POST,retrieveRequest, ArrayList.class);
+        assertEquals(HttpStatus.ACCEPTED, retrieveResponse.getStatusCode());
+        assertNotNull(retrieveResponse.getBody());
+        assertEquals(1,((LinkedHashMap)retrieveResponse.getBody().get(0)).get("uuid"),"This is not the same transaction!");
+        assertEquals(201.0,((LinkedHashMap)retrieveResponse.getBody().get(0)).get("amount"),"This is not the same transaction!");
+
     }
 
     private String createURLWithPort(String uri) {
         return "http://localhost:" + port + uri;
+    }
+
+    private String acquireJWTtoken() {
+        // A little hack here, it will take a too much time to figure out a way to get the Test user password in pure text.
+        HttpEntity<LoginRequest> loginRequest = new HttpEntity<LoginRequest>(new LoginRequest(testUser.getName(), "test"), httpHeaders);
+        ResponseEntity<LoginResponse> response = restTemplate.exchange(
+                createURLWithPort("/api/auth/signin"), HttpMethod.POST, loginRequest, LoginResponse.class);
+        LoginResponse loginResponse = response.getBody();
+        return loginResponse.getToken();
     }
 }

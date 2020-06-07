@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,10 +87,10 @@ public class TransactionManagementController {
         }
     }
     @RequestMapping("/retrieve")
-    @PreAuthorize("hasRole('merchant')")
+    @PreAuthorize("hasRole('ROLE_MERCHANT')")
     public ResponseEntity retrieveTransaction() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication;
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         logger.info("Retrieve all current transactions for merchant {}",  userDetails);
         try {
             List<Transaction> transactionList = transactionRetrievalService.retrieveTransactionsForUser(userDetails);

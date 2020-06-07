@@ -1,5 +1,6 @@
 package com.payment.system.dao.models.trx;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.payment.system.dao.models.User;
 
 import javax.persistence.*;
@@ -22,6 +23,7 @@ import java.util.Date;
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "uuid")
         })
+@JsonSerialize
 public class Transaction {
     @Id
     @NotBlank
