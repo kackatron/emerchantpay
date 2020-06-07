@@ -2,8 +2,8 @@ package com.payment.system.trx;
 
 
 import com.payment.system.controllers.LoadTransactionController;
-import com.payment.system.dao.models.trx.AuthorizeTransaction;
-import com.payment.system.dao.models.trx.ChargeTransaction;
+import com.payment.system.dao.models.trx.*;
+import com.payment.system.dao.repositories.trx.TransactionRepository;
 import com.payment.system.payload.request.CustomerInfo;
 import com.payment.system.payload.request.RegisterTransaction;
 import com.payment.system.security.UserDetailsImpl;
@@ -34,6 +34,9 @@ public class TransactionProcessingTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    TransactionRepository transactionRepository;
 
     @Autowired
     TransactionProcessingService transactionProcessingService;
@@ -68,28 +71,96 @@ public class TransactionProcessingTest {
         RegisterTransaction registerChargeTransaction =
                 new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
                         LoadTransactionController.CHARGE, null);
-        ChargeTransaction chargeTransaction = transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
-        // This is scheduled job but to avoid ambiguity we call it manually
-        // TODO if there is time test the scheduling
+        transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
+
         transactionProcessingService.processTransactions();
-        testUser = userRepository.findByName(testUser.getName()).orElseThrow(() -> new TransactionProcessingException("Ca not find the test user"));
-        assertEquals(testUser.getTotalTransactionSum(),authorizeTransaction.getAmount(),
+
+        testUser = userRepository.findByName(testUser.getName()).orElseThrow(() -> new TransactionProcessingException("Can not find the test user"));
+        assertEquals(testUser.getTotalTransactionSum(), authorizeTransaction.getAmount(),
                 "The total amount of the merchant is different from the amount in transactions");
     }
 
     @Test
-    public void processRevert() {
+    public void processRevert() throws TransactionProcessingException {
+        RegisterTransaction registerAuthorizationTransaction =
+                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+        AuthorizeTransaction authorizeTransaction = transactionRegistrationService
+                .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
 
+        RegisterTransaction registerChargeTransaction =
+                new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
+                        LoadTransactionController.CHARGE, null);
+        ChargeTransaction chargeTransaction = transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
+
+        RegisterTransaction registerRefundTransaction = new RegisterTransaction("3", "100.",
+                chargeTransaction.getUuid().toString(), LoadTransactionController.REFUND, null);
+        transactionRegistrationService.registerRefundTransaction(registerRefundTransaction);
+
+        transactionProcessingService.processTransactions();
+
+        testUser = userRepository.findByName(testUser.getName()).orElseThrow(() -> new TransactionProcessingException("Can not find the test user"));
+        assertEquals(0.0, testUser.getTotalTransactionSum(),
+                "The total amount of the merchant is different from the amount in transactions");
     }
 
     @Test
-    public void ProcessReverse() {
+    public void ProcessReverse() throws TransactionProcessingException {
+        RegisterTransaction registerAuthorizationTransaction =
+                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+        AuthorizeTransaction authorizeTransaction = transactionRegistrationService
+                .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
 
+        RegisterTransaction registerReverseTransaction = new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
+                LoadTransactionController.REVERSAL, null);
+        transactionRegistrationService.registerReversalTransaction(registerReverseTransaction);
+        authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
+                .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
+
+        transactionProcessingService.processTransactions();
+        authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
+                .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
+        assertEquals(ETrxStatus.REVERSED,authorizeTransaction.getStatus(), "Authorization transaction is not in reversed state after registering a reversal transaction.");
+    }
+
+    @Test
+    public void ProcessReverseAfterCharge() throws TransactionProcessingException {
+        RegisterTransaction registerAuthorizationTransaction =
+                new RegisterTransaction("1", "100.0", null, LoadTransactionController.AUTHORIZATION, customerInfo);
+        AuthorizeTransaction authorizeTransaction = transactionRegistrationService
+                .registerAuthorizationTransaction(UserDetailsImpl.getUserDetailsImpl(testUser), registerAuthorizationTransaction);
+
+        RegisterTransaction registerChargeTransaction =
+                new RegisterTransaction("2", "100.0", authorizeTransaction.getUuid().toString(),
+                        LoadTransactionController.CHARGE, null);
+        transactionRegistrationService.registerChargeTransaction(registerChargeTransaction);
+
+        RegisterTransaction registerReverseTransaction = new RegisterTransaction("3", "100.0",
+                authorizeTransaction.getUuid().toString(), LoadTransactionController.REVERSAL, null);
+
+        ReversalTransaction reversalTransaction = transactionRegistrationService.registerReversalTransaction(registerReverseTransaction);
+        authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
+                .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
+
+        transactionProcessingService.processTransactions();
+        authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
+                .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
+
+        authorizeTransaction = (AuthorizeTransaction) transactionRepository.findByUuid(authorizeTransaction
+                .getUuid()).orElseThrow(() -> new TransactionProcessingException("Can not find the authorize transaction"));
+
+        reversalTransaction = (ReversalTransaction) transactionRepository.findByUuid(reversalTransaction
+                .getUuid()).orElseThrow(()->new TransactionProcessingException("Can not find the reversal transaction"));
+
+        assertEquals(ETrxStatus.ERROR,reversalTransaction.getStatus(), "Authorization transaction is reversed but it was already charged.");
+        assertEquals(ETrxStatus.APPROVED,authorizeTransaction.getStatus(), "Authorization transaction is reversed but it was already charged.");
     }
 
     @AfterEach
-    public void tearDown() {
-        transactionCleanupService.setTrxAge(0);
+    public void tearDown() throws InterruptedException {
+        //Set the age limit for time to live to be two seconds in the future, since there is a one second sporadic
+        //difference that appears from time to time, and it makes transactions to be out of the searching constraint for
+        //deletion.
+        transactionCleanupService.setTrxAge(-2000);
         transactionCleanupService.cleanTransactions();
         userRepository.delete(testUser);
     }

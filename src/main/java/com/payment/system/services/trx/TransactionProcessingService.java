@@ -1,6 +1,5 @@
 package com.payment.system.services.trx;
 
-import com.payment.system.controllers.LoadTransactionController;
 import com.payment.system.dao.models.User;
 import com.payment.system.dao.models.trx.*;
 import com.payment.system.dao.repositories.trx.TransactionRepository;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,6 +30,7 @@ public class TransactionProcessingService {
      * if there are such.
      */
     @Scheduled
+    @Transactional
     public void processTransactions() {
         logger.info("Start processing transactions.");
         List<Transaction> transactionList = transactionRepository.findAll(Sort.by(Sort.Direction.DESC, "dateTimeCreation"));
@@ -98,6 +99,7 @@ public class TransactionProcessingService {
         user.setTotalTransactionSum(userTransactionSum);
         chargeTransaction.setProcessed(ETrxProcessed.PROCESSED);
         authorizeTransaction.setProcessed(ETrxProcessed.PROCESSED);
+        authorizeTransaction.setStatus(ETrxStatus.APPROVED);
         // If tests prove you need it, you can case this in transactional service.
         transactionRepository.save(chargeTransaction);
         transactionRepository.save(authorizeTransaction);
@@ -154,6 +156,7 @@ public class TransactionProcessingService {
      * Handles Reverse Transaction. It cancels Authorization transaction and unblocks the money of a customer.
      * In case of success it will set Authorization transaction in reversed state, and mark both Reversal and Authorization
      * transaction as processed which will make them viable for cleanup.
+     *
      * @param reversalTransaction - POJO representing a ReversalTransaction
      * @throws TransactionProcessingException - in case of reference transaction other than Authorization transaction.
      *                                        - in case of reference transaction which is already reversed.
@@ -169,14 +172,17 @@ public class TransactionProcessingService {
                     String.format("Reference Transaction for Reversal Transaction %s have to be Authorization transaction, but it is not it is : %s",
                             reversalTransaction, transaction), castException);
         }
-        if (authorizeTransaction.getStatus() == ETrxStatus.REVERSED ) {
+        // if one of this states is set to authorization transaction it means that it is either reversed or charged.
+        if (authorizeTransaction.getStatus() == ETrxStatus.REVERSED
+                || authorizeTransaction.getStatus() == ETrxStatus.APPROVED
+                || authorizeTransaction.getStatus() == ETrxStatus.ERROR) {
             throw new TransactionProcessingException(
                     String.format("Reference Transaction for Reversal Transaction %s is already in irreversible state %s",
                             reversalTransaction, transaction));
         }
+        reversalTransaction.setProcessed(ETrxProcessed.PROCESSED);
         authorizeTransaction.setStatus(ETrxStatus.REVERSED);
         authorizeTransaction.setProcessed(ETrxProcessed.PROCESSED);
-        reversalTransaction.setProcessed(ETrxProcessed.PROCESSED);
         // If tests prove you need it, you can case this in transactional service.
         transactionRepository.save(reversalTransaction);
         transactionRepository.save(authorizeTransaction);

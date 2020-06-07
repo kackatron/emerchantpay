@@ -14,6 +14,7 @@ public class ReversalTransaction extends Transaction {
     public ReversalTransaction(Long uuid, AuthorizeTransaction reference_id) {
         this.uuid = uuid;
         this.reference_id = reference_id;
+        this.merchant = reference_id.getMerchant();
     }
 
     @Override

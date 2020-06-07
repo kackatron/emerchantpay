@@ -37,18 +37,17 @@ public class Transaction {
 
 
     @ManyToOne
-    @JoinColumn(name = "id")
+    @JoinColumn(updatable=true)
     protected User merchant;
 
     @OneToOne
-    @JoinColumn
+    @JoinColumn(updatable=true)
     protected Transaction reference_id;
 
     // ETrxProcessed marks if the TransactionProcessingService gone through this transaction. If it is processed its vailable for
     protected ETrxProcessed processed;
 
     public Transaction() {
-        status = ETrxStatus.APPROVED;
         processed = ETrxProcessed.PENDING;
         dateTimeCreation = new Date();
     }

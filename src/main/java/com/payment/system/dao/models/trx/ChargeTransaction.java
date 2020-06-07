@@ -23,6 +23,7 @@ public class ChargeTransaction extends Transaction{
         this.uuid = uuid;
         this.reference_id = reference_id;
         this.amount = amount;
+        this.merchant = reference_id.getMerchant();
     }
 
     public double getAmount() {

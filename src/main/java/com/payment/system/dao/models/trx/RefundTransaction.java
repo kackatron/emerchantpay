@@ -16,15 +16,12 @@ public class RefundTransaction extends Transaction {
     @Min(1)
     private double amount;
 
-    @ManyToOne
-    @JoinColumn(name = "uuid", insertable = false, updatable = false)
-    protected ChargeTransaction reference_id;
-
     public RefundTransaction(){}
     public RefundTransaction(Long uuid, ChargeTransaction reference_id, @NotBlank @Min(1) double amount) {
         this.uuid=uuid;
         this.reference_id = reference_id;
         this.amount = amount;
+        this.merchant = reference_id.getMerchant();
     }
 
     @Override

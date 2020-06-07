@@ -11,9 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@Transactional
 public class TransactionRegistrationService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionRegistrationService.class);
 
@@ -59,7 +61,7 @@ public class TransactionRegistrationService {
         return transactionRepository.save(authorizeTransaction);
     }
 
-    public ReversalTransaction registerReversalTransaction(UserDetailsImpl userDetails, RegisterTransaction request) throws TransactionProcessingException {
+    public ReversalTransaction registerReversalTransaction(RegisterTransaction request) throws TransactionProcessingException {
         //Handle uuid
         String sUuid = request.getUuid();
         long uuid;
@@ -91,6 +93,7 @@ public class TransactionRegistrationService {
         } catch (ClassCastException e) {
             throw new TransactionProcessingException("Referenced transaction is not Authorize transaction.");
         }
+
         // Store transaction
         transactionRepository.save(authorizeTransaction);
         return transactionRepository.save(new ReversalTransaction(uuid, authorizeTransaction));

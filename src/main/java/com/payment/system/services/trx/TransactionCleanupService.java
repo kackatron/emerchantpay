@@ -5,13 +5,12 @@ import com.payment.system.dao.repositories.trx.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 @Service
 public class TransactionCleanupService {
@@ -33,9 +32,14 @@ public class TransactionCleanupService {
     }
 
     @Scheduled
+    @Transactional
     public void cleanTransactions() {
-        Collection<Transaction> transactionsToBeDeleted = transactionRepository.findAllProcessedTransactionsOlderThan(new Date(System.currentTimeMillis() - trxAge));
+        Date olderThan = new Date(System.currentTimeMillis() - trxAge);
+        Collection<Transaction> transactionsToBeDeleted = transactionRepository.findAllProcessedTransactionsOlderThan(olderThan);
         logger.info("All this transaction will be deleted : {}", transactionsToBeDeleted);
         transactionRepository.deleteAll(transactionsToBeDeleted);
+        transactionsToBeDeleted = transactionRepository.findAllProcessedTransactionsOlderThan(olderThan);
+        logger.info("Left transactions {}", transactionsToBeDeleted);
+        assert transactionsToBeDeleted.isEmpty();
     }
 }
