@@ -1,16 +1,14 @@
 package com.payment.system;
 
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.Arrays;
-
+/**
+ * From here we launch the application
+ */
 @SpringBootApplication
 @EnableConfigurationProperties
 @EnableScheduling

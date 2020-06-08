@@ -3,7 +3,9 @@ package com.payment.system.payload.request;
 
 import javax.validation.constraints.NotBlank;
 
-
+/**
+ * Pojo representing request for registering a transaction.
+ */
 public class RegisterTransaction {
     @NotBlank
     private String uuid;

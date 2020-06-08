@@ -2,6 +2,9 @@ package com.payment.system.payload.request;
 
 import javax.validation.constraints.Email;
 
+/**
+ * Pojo representing the Customer in a given Transaction.
+ */
 public class CustomerInfo {
     @Email
     String customer_email;

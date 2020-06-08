@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * JPA repository that handles User Queries.
+ */
 @Repository
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long> {

@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * TransactionManagementController is a specialized controller that is  providing all transaction related REST endpoints.
+ */
 @RestController
 @RequestMapping("/trx")
 public class TransactionManagementController {
@@ -39,9 +42,14 @@ public class TransactionManagementController {
     @Autowired
     TransactionRetrievalService transactionRetrievalService;
 
+    /**
+     * The endpoint used for registering all the types of transactions.
+     * @param registerTransaction - POJO representing the registering request.
+     * @return HTTP status and registered Transaction UUID
+     */
     @RequestMapping("/load")
     @PreAuthorize("hasRole('ROLE_MERCHANT')")
-    public ResponseEntity loadTransactions(@RequestBody RegisterTransaction registerTransaction) {
+    public ResponseEntity registerTransaction(@RequestBody RegisterTransaction registerTransaction) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         if (userDetails.getStatus().equals("INACTIVE")) {
@@ -88,6 +96,11 @@ public class TransactionManagementController {
             }
         }
     }
+
+    /**
+     * Endpoint that returns all the transactions for the current user.
+     * @return all the transactions for the current user
+     */
     @RequestMapping("/retrieve")
     @PreAuthorize("hasRole('ROLE_MERCHANT')")
     public ResponseEntity retrieveTransaction() {

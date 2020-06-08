@@ -21,6 +21,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
         prePostEnabled=true
 )
 
+/**
+ * Configuration object. Basically from here we control Spring Security Behaviour.
+ */
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
@@ -51,6 +54,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        // Separated for better visibility, REST from UI endpoints.
         http.cors().and().csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(unauthorizedHandler).and()

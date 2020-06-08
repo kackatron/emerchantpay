@@ -14,6 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
+/**
+ * Filter that is attached to every request it validates the JWT token, extracts the user data from it and stores it in
+ * SecurityContext for later use.
+ */
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     private JwtHandler jwtHandler;

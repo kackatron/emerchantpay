@@ -83,7 +83,7 @@ public class RestControllersTest {
     public void deleteUsers() {
         TestRestTemplate restTemplate = new TestRestTemplate();
         httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith", "matrix"));
-        HttpEntity<DeleteUserRequest> deleteRequest = new HttpEntity<>(httpHeaders);
+        HttpEntity<String> deleteRequest = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> deleteResponse = restTemplate.exchange(createURLWithPort("/usr/delete/" + "Neo"),
                 HttpMethod.GET, deleteRequest, String.class);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());

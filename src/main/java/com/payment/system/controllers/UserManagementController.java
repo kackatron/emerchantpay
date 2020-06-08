@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * UserManagementController covers all the user management operations.
+ */
 @RestController
 @RequestMapping("/usr")
 public class UserManagementController {
@@ -21,6 +24,10 @@ public class UserManagementController {
     @Autowired
     UserManagementService userManagementService;
 
+    /**
+     * Returns all the users
+     * @return
+     */
     @RequestMapping("/retrieve")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
     public ResponseEntity retrieveUsers() {
@@ -28,6 +35,11 @@ public class UserManagementController {
         return ResponseEntity.ok(listUsers);
     }
 
+    /**
+     * Delete the specified user
+     * @param name
+     * @return
+     */
     @RequestMapping("/delete/{name}")
     @PreAuthorize("hasRole('ROLE_ADMINISTRATOR')")
     public ResponseEntity deleteUser(@PathVariable(name = "name") String name) {

@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * This component is handles the cases of error while request goes through the chain of filters.
+ */
 @Component
 public class UnauthorizedHandler implements AuthenticationEntryPoint {
     private static final Logger logger = LoggerFactory.getLogger(UnauthorizedHandler.class);

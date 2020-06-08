@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
-
-import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.response.LoginResponse;
 import com.payment.system.security.JwtHandler;
@@ -17,12 +15,16 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * AuthController is a specialized controller, responsible for authenticating REST Endpoint users.
+ * For UI users we use embeded SpringSecurity login functionality.
+ */
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController

@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+/**
+ * Component that handles all JWT operations.
+ */
 @Component
 public class JwtHandler {
     private static final Logger logger = LoggerFactory.getLogger(JwtHandler.class);

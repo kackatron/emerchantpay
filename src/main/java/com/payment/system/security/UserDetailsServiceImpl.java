@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+/**
+ * Service that provides UserDetails for the needs of authentication.
+ */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired

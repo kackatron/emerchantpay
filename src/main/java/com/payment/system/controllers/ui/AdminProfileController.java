@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
+/**
+ * Admin controller is a specialized controller that handles the Administrator page.
+ * It provides attribute loading so that Spring Tymeleaf EL can do its thing.
+ */
 @Controller
 @RequestMapping("admin")
 public class AdminProfileController {

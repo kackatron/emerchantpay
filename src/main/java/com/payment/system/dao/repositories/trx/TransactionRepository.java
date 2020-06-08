@@ -13,6 +13,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * JPA Repository that handles Transaction queries.
+ */
 @Repository
 @Transactional
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
