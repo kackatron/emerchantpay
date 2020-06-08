@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:insert="fragments.html :: headerfiles"></head>
+<body>
+<header th:insert="fragments.html :: nav"></header>
+<!-- Page content goes here -->
+<div class="container">
+    <p>This is Merchant profile.</p>
+    <table class="table table-bordered text-center">
+        <thead>
+        <td>Username</td>
+        <td>Authorities</td>
+        <td>Accumulated amount</td>
+        </thead>
+        <tbody>
+        <tr>
+            <td sec:authentication="name"></td>
+            <td sec:authentication="principal.authorities"></td>
+            <td th:text="${currentUserDetails.totalTransactionSum}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="table table-bordered text-center">
+        <thead>
+        <td>UUID</td>
+        <td>Timestamp</td>
+        <td>Status</td>
+        <td>Merchant</td>
+        <td>Reference Transaction</td>
+        <td>Amount</td>
+        </thead>
+        <tbody>
+        <tr th:each="transaction, rowStat: ${transactions}"
+            th:style="${rowStat.odd} ? 'color: gray' : 'color: blue;'">
+            <td th:text="${transaction.uuid}"></td>
+            <td th:text="${transaction.dateTimeCreation}"></td>
+            <td th:text="${transaction.status}"></td>
+            <td th:text="${transaction.merchant}"></td>
+            <td th:text="${transaction.reference_id}"></td>
+            <td th:text="${transaction.amount}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

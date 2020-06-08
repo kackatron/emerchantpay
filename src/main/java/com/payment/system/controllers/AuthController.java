@@ -5,12 +5,9 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import com.payment.system.dao.models.EUserStatus;
-import com.payment.system.dao.models.User;
 import com.payment.system.dao.repositories.user.UserRepository;
 import com.payment.system.payload.request.LoginRequest;
 import com.payment.system.payload.response.LoginResponse;
-import com.payment.system.payload.response.SimpleResponse;
 import com.payment.system.security.JwtHandler;
 import com.payment.system.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,15 +32,9 @@ public class AuthController {
     AuthenticationManager authenticationManager;
 
     @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    PasswordEncoder encoder;
-
-    @Autowired
     JwtHandler jwtHandler;
 
-    @PostMapping("/signin")
+    @PostMapping("/authenticate")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(

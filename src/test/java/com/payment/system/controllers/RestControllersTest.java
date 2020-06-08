@@ -5,12 +5,9 @@ import com.payment.system.dao.models.trx.Transaction;
 import com.payment.system.payload.request.*;
 import com.payment.system.payload.response.LoginResponse;
 import com.payment.system.services.user.UserManagementService;
-import org.graalvm.compiler.lir.LIRInstruction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -18,12 +15,9 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RestControllersTest {
@@ -52,7 +46,7 @@ public class RestControllersTest {
     @Test
     public void registerAndRetrieveTransactions() {
         TestRestTemplate restTemplate = new TestRestTemplate();
-        httpHeaders.setBearerAuth(acquireJwtToken(testUser.getName(),"test"));
+        httpHeaders.setBearerAuth(acquireJwtToken(testUser.getName(), "test"));
         CustomerInfo customerInfo = new CustomerInfo();
         customerInfo.setCustomer_email("test@test.tes");
         customerInfo.setCustomer_phone("999-999-999");
@@ -65,39 +59,42 @@ public class RestControllersTest {
 
         HttpEntity<RetrieveTransactionsRequest> retrieveRequest = new HttpEntity<>(new RetrieveTransactionsRequest(""), httpHeaders);
         ResponseEntity<List<Transaction>> retrieveResponse = restTemplate.exchange(
-                createURLWithPort("/trx/retrieve"), HttpMethod.POST, retrieveRequest,  new ParameterizedTypeReference<List<Transaction>>(){});
+                createURLWithPort("/trx/retrieve"), HttpMethod.POST, retrieveRequest, new ParameterizedTypeReference<List<Transaction>>() {
+                });
         assertEquals(HttpStatus.ACCEPTED, retrieveResponse.getStatusCode());
         assertNotNull(retrieveResponse.getBody());
-        assertEquals(1, retrieveResponse.getBody().get(0).getUuid(),"This is not the same transaction!");
+        assertEquals(1, retrieveResponse.getBody().get(0).getUuid(), "This is not the same transaction!");
         assertEquals(201.0, retrieveResponse.getBody().get(0).getAmount(), "This is not the same transaction!");
     }
 
     @Test
     public void retrieveUsers() {
         TestRestTemplate restTemplate = new TestRestTemplate();
-        httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith","matrix"));
+        httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith", "matrix"));
         HttpEntity<String> retrieveUsers = new HttpEntity<>("none", httpHeaders);
-        ResponseEntity<List<User>> response =  restTemplate.exchange(createURLWithPort("/usr/retrieve"),
-                HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>(){});
+        ResponseEntity<List<User>> response = restTemplate.exchange(createURLWithPort("/usr/retrieve"),
+                HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>() {
+                });
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(5, response.getBody().size(), "Number of Loaded users is different from expected.");
+        assertTrue(response.getBody().size() > 0, "There should be at least one user.");
     }
 
     @Test
     public void deleteUsers() {
         TestRestTemplate restTemplate = new TestRestTemplate();
-        httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith","matrix"));
-        HttpEntity<DeleteUserRequest> deleteRequest = new HttpEntity<>(new DeleteUserRequest("Neo"), httpHeaders);
-        ResponseEntity<String> deleteResponse =  restTemplate.exchange(createURLWithPort("/usr/delete"),
-                HttpMethod.POST, deleteRequest, String.class);
+        httpHeaders.setBearerAuth(acquireJwtToken("Mr.Smith", "matrix"));
+        HttpEntity<DeleteUserRequest> deleteRequest = new HttpEntity<>(httpHeaders);
+        ResponseEntity<String> deleteResponse = restTemplate.exchange(createURLWithPort("/usr/delete/" + "Neo"),
+                HttpMethod.GET, deleteRequest, String.class);
         assertEquals(HttpStatus.OK, deleteResponse.getStatusCode());
 
         HttpEntity<String> retrieveUsers = new HttpEntity<>("none", httpHeaders);
-        ResponseEntity<List<User>> retrieveResponse =  restTemplate.exchange(createURLWithPort("/usr/retrieve"),
-                HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>(){});
+        ResponseEntity<List<User>> retrieveResponse = restTemplate.exchange(createURLWithPort("/usr/retrieve"),
+                HttpMethod.POST, retrieveUsers, new ParameterizedTypeReference<List<User>>() {
+                });
         assertEquals(4, retrieveResponse.getBody().size(), "Number of Loaded users is different from expected.");
-    }
 
+    }
 
 
     private String createURLWithPort(String uri) {
@@ -108,7 +105,7 @@ public class RestControllersTest {
         // A little hack here, it will take a too much time to figure out a way to get the Test user password in pure text.
         HttpEntity<LoginRequest> loginRequest = new HttpEntity<LoginRequest>(new LoginRequest(userName, password), httpHeaders);
         ResponseEntity<LoginResponse> response = restTemplate.exchange(
-                createURLWithPort("/api/auth/signin"), HttpMethod.POST, loginRequest, LoginResponse.class);
+                createURLWithPort("/api/auth/authenticate"), HttpMethod.POST, loginRequest, LoginResponse.class);
         LoginResponse loginResponse = response.getBody();
         return loginResponse.getToken();
     }

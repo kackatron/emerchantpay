@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -50,23 +51,23 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors()
-                .and()
-                .csrf()
-                .disable()
+        http.cors().and().csrf().disable()
                 .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedHandler)
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .authenticationEntryPoint(unauthorizedHandler).and()
                 .authorizeRequests()
-                .antMatchers("/api/auth/**")
-                .permitAll()
-                .antMatchers("/trx/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated();
+                .antMatchers("/index.html").permitAll()
+                .antMatchers("/api/auth/authenticate").permitAll()
+                .antMatchers("/merchant/**").hasRole("MERCHANT")
+                .antMatchers("/admin/**").hasRole("ADMINISTRATOR");
+        http.cors().and()
+                .formLogin()
+                .loginPage("/login").permitAll()
+                .usernameParameter("txtUsername")
+                .passwordParameter("txtPassword")
+                .and()
+                .logout().logoutRequestMatcher(new AntPathRequestMatcher("/logout")).logoutSuccessUrl("/login")
+                .and()
+                .rememberMe().tokenValiditySeconds(2592000).key("mySecret!").rememberMeParameter("checkRememberMe");
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }

@@ -134,6 +134,5 @@ public class User {
         this.totalTransactionSum = totalTransactionSum;
     }
 
-
 }
 

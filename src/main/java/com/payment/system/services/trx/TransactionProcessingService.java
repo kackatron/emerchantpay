@@ -102,6 +102,7 @@ public class TransactionProcessingService {
         userTransactionSum = userTransactionSum + chargeTransaction.getAmount();
         user.setTotalTransactionSum(userTransactionSum);
         chargeTransaction.setProcessed(ETrxProcessed.PROCESSED);
+        chargeTransaction.setStatus(ETrxStatus.APPROVED);
         authorizeTransaction.setProcessed(ETrxProcessed.PROCESSED);
         authorizeTransaction.setStatus(ETrxStatus.APPROVED);
         // If tests prove you need it, you can case this in transactional service.
@@ -149,7 +150,9 @@ public class TransactionProcessingService {
         }
         user.setTotalTransactionSum(userTransactionSum);
         chargeTransaction.setProcessed(ETrxProcessed.PROCESSED);
+        chargeTransaction.setStatus(ETrxStatus.REFUNDED);
         refundTransaction.setProcessed(ETrxProcessed.PROCESSED);
+        refundTransaction.setStatus(ETrxStatus.APPROVED);
         // If tests prove you need it, you can case this in transactional service.
         transactionRepository.save(chargeTransaction);
         transactionRepository.save(refundTransaction);
@@ -187,6 +190,7 @@ public class TransactionProcessingService {
         reversalTransaction.setProcessed(ETrxProcessed.PROCESSED);
         authorizeTransaction.setStatus(ETrxStatus.REVERSED);
         authorizeTransaction.setProcessed(ETrxProcessed.PROCESSED);
+        reversalTransaction.setStatus(ETrxStatus.APPROVED);
         // If tests prove you need it, you can case this in transactional service.
         transactionRepository.save(reversalTransaction);
         transactionRepository.save(authorizeTransaction);

@@ -110,4 +110,8 @@ public class Transaction {
 
     public void setAmount(double amount) { this.amount = amount; }
 
+    public Date getDateTimeCreation() { return dateTimeCreation; }
+
+    public void setDateTimeCreation(Date dateTimeCreation) { this.dateTimeCreation = dateTimeCreation; }
+
 }

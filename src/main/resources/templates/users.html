@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <div id="demo">
+        <h2>Load users</h2>
+        <button type="button" onclick="loadUser()">Change Content</button>
+    </div>
+    <script>
+        function loadUser() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("demo").innerHTML = this.responseText;
+                }
+            };
+            xhttp.open("POST", "http://localhost:8080/usr/retrieve", false);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.setRequestHeader("Authorization","Bearer  eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJNci5TbWl0aCIsImlhdCI6MTU5MTYwMDczMSwiZXhwIjoxNTkxNjg3MTMxfQ.UWvZr6BJxg0mMP8FTFxzBAXPUaoHlPknGIcnwtWGtKrPyGabUC68QbloovLR-fds57vw_eOG-DVzyvEFuh9NNQ")
+            xhttp.send();
+        }
+    </script>
+</body>
+
+</html>

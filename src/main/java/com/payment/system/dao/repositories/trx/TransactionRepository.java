@@ -20,7 +20,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Override
     List<Transaction> findAll(Sort sort);
 
-    @Query("SELECT t FROM Transaction t WHERE t.processed = 0 and t.dateTimeCreation < ?1")
+    @Query("SELECT t FROM Transaction t WHERE t.processed = 0 and t.dateTimeCreation < ?1 order by t.dateTimeCreation desc")
     Collection<Transaction> findAllProcessedTransactionsOlderThan(Date date);
 
     @Query("SELECT t FROM Transaction t WHERE t.merchant = ?1")
